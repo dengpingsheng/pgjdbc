@@ -29,8 +29,8 @@ public abstract class ConnectionFactory {
      * connection is returned.
      */
     private static final Object[][] versions = {
-                { "3", new org.postgresql.core.v3.ConnectionFactoryImpl() },
                 { "2", new org.postgresql.core.v2.ConnectionFactoryImpl() },
+                { "3", new org.postgresql.core.v3.ConnectionFactoryImpl() },
             };
 
     /**
