@@ -411,6 +411,9 @@ public class ConnectionFactoryImpl extends ConnectionFactory {
         String dbVersion = versionParts.nextToken(); /* "X.Y.Z" */
 
         protoConnection.setServerVersion(dbVersion);
+        
+        String charSet = info.getProperty("charSet");
+        String dbEncoding = (results[1] == null ? null : protoConnection.getEncoding().decode(results[1]));
 
         if (dbVersion.compareTo("7.3") >= 0)
         {
@@ -421,8 +424,12 @@ public class ConnectionFactoryImpl extends ConnectionFactory {
 
             if (logger.logDebug())
                 logger.debug("Switching to UTF8 client_encoding");
-
-            String sql = "begin; set autocommit = on; set client_encoding = 'UTF8'; ";
+                       
+            //String sql = "begin; set autocommit = on; set client_encoding = 'UTF8'; ";
+            String sql = "begin; set autocommit = on; ";
+            if (charSet != null && dbEncoding != null && !"SQL_ASCII".equalsIgnoreCase(dbEncoding)) {
+                sql += "set client_encoding = '" + charSet + "'; ";
+            }
             if (dbVersion.compareTo("9.0") >= 0) {
                 sql += "SET extra_float_digits=3; ";
             } else if (dbVersion.compareTo("7.4") >= 0) {
@@ -431,12 +438,11 @@ public class ConnectionFactoryImpl extends ConnectionFactory {
             sql += "commit";
 
             SetupQueryRunner.run(protoConnection, sql, false);
-            protoConnection.setEncoding(Encoding.getDatabaseEncoding("UTF8"));
+            //protoConnection.setEncoding(Encoding.getDatabaseEncoding("UTF8"));
+            protoConnection.setEncoding(Encoding.getDatabaseEncoding(charSet));
         }
         else
-        {
-            String charSet = info.getProperty("charSet");
-            String dbEncoding = (results[1] == null ? null : protoConnection.getEncoding().decode(results[1]));
+        {            
             if (logger.logDebug())
             {
                 logger.debug("Specified charset:  " + charSet);
